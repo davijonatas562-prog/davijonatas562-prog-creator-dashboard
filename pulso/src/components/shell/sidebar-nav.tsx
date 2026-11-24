@@ -11,7 +11,7 @@ export function SidebarNav({ base, onNavigate, showAccount = true }: { base: str
   return (
     <nav className="flex flex-1 flex-col gap-6 overflow-y-auto overflow-x-hidden px-3 py-4 scrollbar-thin" aria-label="Navegação principal">
       {NAV.map((group) => (
-        <div key={group.label} className="grid gap-0.5">
+        <div key={group.label} className="grid grid-cols-[minmax(0,1fr)] gap-0.5">
           <p className="px-2.5 pb-1.5 text-[10.5px] font-medium uppercase tracking-[0.14em] text-muted-foreground/70">{group.label}</p>
           {group.items.map((item) => (
             <NavLink key={item.key} item={item} base={base} pathname={pathname} onNavigate={onNavigate} />
@@ -19,7 +19,7 @@ export function SidebarNav({ base, onNavigate, showAccount = true }: { base: str
         </div>
       ))}
       {showAccount && (
-        <div className="mt-auto grid gap-0.5">
+        <div className="mt-auto grid grid-cols-[minmax(0,1fr)] gap-0.5">
           <p className="px-2.5 pb-1.5 text-[10.5px] font-medium uppercase tracking-[0.14em] text-muted-foreground/70">Conta</p>
           {ACCOUNT_NAV.map((item) => (
             <NavLink key={item.key} item={item} base={base} pathname={pathname} onNavigate={onNavigate} />

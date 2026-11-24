@@ -65,7 +65,7 @@ export function AppShell({
 
         {/* Sidebar mobile */}
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent side="left" className="flex flex-col bg-sidebar p-0" aria-describedby={undefined}>
+          <DialogContent side="left" className="flex flex-col bg-sidebar p-0" aria-describedby={undefined} onOpenAutoFocus={(e) => e.preventDefault()}>
             <DialogTitle className="sr-only">Menu</DialogTitle>
             <div className="flex h-14 items-center px-5">
               <Logo href={base} />
