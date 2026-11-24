@@ -21,7 +21,7 @@ export async function listProfilesWithTerms(orgId: string): Promise<ProfileWithT
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("monitored_profiles")
-    .select("id, full_name, public_name, nicknames, office, municipality, state, party, photo_url, status, search_terms(term, kind)")
+    .select("id, full_name, public_name, nicknames, office, municipality, state, party, photo_url, status, search_terms!search_terms_profile_id_fkey(term, kind)")
     .eq("organization_id", orgId)
     .order("public_name");
   if (error) throw new Error(`Falha ao carregar perfis: ${error.message}`);

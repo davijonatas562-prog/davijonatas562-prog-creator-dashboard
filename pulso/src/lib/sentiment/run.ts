@@ -38,7 +38,7 @@ export async function classifyPendingMentions(opts: { orgId: string; profileId: 
     admin.from("topics").select("id, name, slug").eq("organization_id", opts.orgId),
     admin
       .from("sentiment_analysis")
-      .select("sentiment, mentions(content)")
+      .select("sentiment, mentions!sentiment_analysis_mention_id_fkey(content)")
       .eq("organization_id", opts.orgId)
       .eq("is_manual", true)
       .order("created_at", { ascending: false })
