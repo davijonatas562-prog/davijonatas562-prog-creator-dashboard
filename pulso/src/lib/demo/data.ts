@@ -1,5 +1,5 @@
 import "server-only";
-import type { Mention, MonitoredProfile, Sentiment, SourceId, SourceStatus } from "@/lib/types";
+import type { ContentType, Mention, MentionItem, MentionStatus, MonitoredProfile, ProfileWithTerms, Sentiment, SourceId, SourceStatus, Stance } from "@/lib/types";
 import { MS } from "@/lib/metrics/period";
 
 /**
@@ -71,6 +71,8 @@ const TEXTS: Record<string, Partial<Record<Sentiment, string[]>>> = {
   Infraestrutura: {
     positive: ["A pavimentação da rua Castanheira ficou ótima, depois de anos de lama. Valeu, prefeito."],
     negative: [
+      "Parabéns, prefeito João Silva, pela piscina pública na avenida Beira-Rio. Só faltou avisar que era buraco.",
+      "Égua, tá de parabéns a prefeitura: três meses pra tapar um buraco e ainda tapou o errado.",
       "Depois da chuva a avenida Beira-Rio virou um mar de buraco. Ninguém aparece pra resolver.",
       "Rua do Igarapé sem iluminação há 15 dias. Moradores com medo de sair à noite.",
       "Mais uma vez cratera na entrada do bairro Novo Horizonte. Vai esperar alguém se acidentar?",
@@ -178,6 +180,12 @@ function textFor(r: () => number, topic: string, s: Sentiment) {
   return list[Math.floor(r() * list.length)];
 }
 
+/** Textos fictícios irônicos — a análise de demonstração os marca como ironia/sarcasmo. */
+const IRONIC = new Set([
+  "Parabéns, prefeito João Silva, pela piscina pública na avenida Beira-Rio. Só faltou avisar que era buraco.",
+  "Égua, tá de parabéns a prefeitura: três meses pra tapar um buraco e ainda tapou o errado.",
+]);
+
 export function generateDemoMentions(now: Date): Mention[] {
   const nowHour = Math.floor(now.getTime() / MS.HOUR);
   const out: Mention[] = [];
@@ -250,4 +258,85 @@ export function demoSourceStatuses(now: Date, mentions: Mention[]): SourceStatus
     status("reddit", "not_connected"),
     status("other", "not_connected"),
   ];
+}
+
+export const DEMO_PROFILES_FULL: ProfileWithTerms[] = [
+  {
+    ...DEMO_PROFILES[0],
+    nicknames: ["Joãozinho da Aurora"],
+    terms: [
+      { term: "Prefeito João Silva", kind: "primary" },
+      { term: "João Silva", kind: "primary" },
+      { term: "Prefeitura de Nova Aurora", kind: "related" },
+      { term: "Nova Aurora", kind: "context" },
+      { term: "João Silva Neto", kind: "exclude" },
+    ],
+  },
+];
+
+const EMOTIONS: Record<Sentiment, string[]> = {
+  positive: ["gratidão", "satisfação", "orgulho", "esperança"],
+  negative: ["indignação", "frustração", "preocupação", "cansaço"],
+  neutral: ["neutra"],
+  mixed: ["ambivalência", "expectativa"],
+  undetermined: ["incerta"],
+};
+
+function hash(s: string) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+
+const TYPE_BY_SOURCE: Partial<Record<SourceId, ContentType>> = {
+  google_news: "article",
+  news_sites: "article",
+  blogs: "article",
+  youtube: "video",
+  tiktok: "video",
+};
+
+/** Menções detalhadas da demonstração (mesma base do dashboard + campos da análise fictícia). */
+export function generateDemoItems(now: Date): MentionItem[] {
+  return generateDemoMentions(now).map((m) => {
+    const h = hash(m.id);
+    const ironic = !!m.content && IRONIC.has(m.content);
+    const sentiment: Sentiment = ironic ? "negative" : (m.sentiment ?? "undetermined");
+    const stance: Stance =
+      sentiment === "positive" ? "praise" : sentiment === "negative" ? (m.content?.includes("?") ? "question" : "criticism") : sentiment === "neutral" ? "neutral" : "unknown";
+    const ageH = (now.getTime() - new Date(m.publishedAt).getTime()) / MS.HOUR;
+    const status: MentionStatus =
+      sentiment === "negative" && ageH > 72 ? (["responded", "resolved", "in_review", "new"] as const)[h % 4] : h % 17 === 0 ? "in_review" : "new";
+    const unclassified = h % 41 === 0;
+    return {
+      id: m.id,
+      sourceId: m.sourceId,
+      publishedAt: m.publishedAt,
+      content: m.content,
+      authorName: m.authorName,
+      url: null,
+      contentType: TYPE_BY_SOURCE[m.sourceId] ?? (h % 3 === 0 ? "comment" : "post"),
+      reach: m.reach,
+      engagement: m.engagement,
+      relevance: m.relevance,
+      status,
+      topic: m.topic,
+      saved: h % 29 === 0,
+      analysis: unclassified
+        ? null
+        : {
+            sentiment,
+            confidence: ironic ? 0.78 : m.confidence,
+            emotion: ironic ? "indignação" : EMOTIONS[sentiment][h % EMOTIONS[sentiment].length],
+            stance,
+            irony: ironic,
+            sarcasm: ironic && h % 2 === 0,
+            context: ironic
+              ? "Elogio aparente usado de forma irônica para criticar a conservação das vias."
+              : `Menção fictícia sobre ${m.topic?.toLowerCase() ?? "a gestão"} (${sentiment === "positive" ? "avaliação favorável" : sentiment === "negative" ? "reclamação" : sentiment === "neutral" ? "conteúdo informativo" : "sentido ambíguo"}).`,
+            isManual: false,
+            model: "demonstração",
+          },
+    };
+  });
 }

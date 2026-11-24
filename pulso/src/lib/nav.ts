@@ -33,7 +33,7 @@ export interface NavGroup {
   items: NavItem[];
 }
 
-export const CURRENT_PHASE = 1;
+export const CURRENT_PHASE = 2;
 
 export const NAV: NavGroup[] = [
   {

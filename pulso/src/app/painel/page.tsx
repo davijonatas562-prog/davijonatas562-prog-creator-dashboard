@@ -49,17 +49,23 @@ function NoProfiles({ orgName }: { orgName: string }) {
           <span className="flex size-12 items-center justify-center rounded-xl border border-primary/30 bg-primary/10">
             <UserPlus className="size-5 text-primary" />
           </span>
-          <h2 className="mt-4 text-lg font-semibold">Organização criada. Próximo passo: o primeiro perfil.</h2>
+          <h2 className="mt-4 text-lg font-semibold">Organização criada. Próximo passo: o primeiro político.</h2>
           <p className="mt-2 max-w-lg text-sm text-muted-foreground">
-            O dashboard é calculado a partir das menções reais de um perfil monitorado (etapas 3 a 5 do onboarding). O cadastro de
-            perfis e termos chega na Fase 2 e os conectores de fontes, na Fase 3. Até lá, nenhum número é exibido aqui — use a
-            demonstração para conhecer todas as telas.
+            Etapas 3 e 4 do onboarding: cadastre a pessoa pública e escolha os termos de monitoramento. O dashboard é calculado a
+            partir das menções reais desse perfil — nenhum número é exibido antes disso.
           </p>
-          <Button asChild variant="outline" className="mt-6">
-            <Link href="/demo">
-              Abrir demonstração <ArrowRight />
-            </Link>
-          </Button>
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            <Button asChild>
+              <Link href="/painel/perfis/novo">
+                <UserPlus /> Adicionar político
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/demo">
+                Ver demonstração <ArrowRight />
+              </Link>
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

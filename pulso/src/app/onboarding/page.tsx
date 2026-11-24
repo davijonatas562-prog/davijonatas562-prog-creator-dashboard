@@ -6,6 +6,7 @@ import { Logo } from "@/components/shell/logo";
 import { Card } from "@/components/ui/card";
 import { getSessionContext } from "@/lib/data/session";
 import { cn } from "@/lib/utils";
+import { CURRENT_PHASE } from "@/lib/nav";
 import { OrgForm } from "./org-form";
 
 export const metadata: Metadata = { title: "Primeiros passos" };
@@ -65,7 +66,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
                     <div className="pt-1.5">
                       <p className={cn("text-sm font-medium", state === "todo" && "text-muted-foreground")}>
                         {i + 1}. {s.title}
-                        {s.phase > 1 && <span className="ml-2 rounded border border-border px-1.5 py-px text-[10px] font-normal text-muted-foreground">Fase {s.phase}</span>}
+                        {s.phase > CURRENT_PHASE && <span className="ml-2 rounded border border-border px-1.5 py-px text-[10px] font-normal text-muted-foreground">Fase {s.phase}</span>}
                       </p>
                       <p className="mt-0.5 text-xs text-muted-foreground">{s.text}</p>
                     </div>

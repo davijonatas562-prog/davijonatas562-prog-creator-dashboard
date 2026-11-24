@@ -3,8 +3,8 @@
 Plataforma SaaS para monitorar a reputação digital de pessoas públicas (prefeitos, deputados, vereadores,
 gestores) a partir de **conteúdo público**: menções, sentimento, tendências, crises e recomendações.
 
-> Status: **Fase 1 concluída** — estrutura, identidade visual, autenticação, banco de dados com RLS e
-> dashboard com modo demonstração. Veja o [roadmap](#roadmap).
+> Status: **Fases 1 e 2 concluídas** — estrutura, autenticação, banco com RLS, dashboard, demonstração,
+> perfis monitorados com termos, central de menções e análise de sentimento por IA. Veja o [roadmap](#roadmap).
 
 ## Rodando localmente
 
@@ -22,6 +22,7 @@ login/cadastro mostram um aviso de configuração, com os formulários desabilit
 |--------------------|-----------|
 | `npm run dev`      | Desenvolvimento |
 | `npm run build`    | Build de produção + tipos + lint |
+| `npm test`         | Testes de lógica (termos, índice, filtros, prompt) |
 | `npm run test:db`  | Sobe um Postgres temporário, aplica as migrations e roda os testes de RLS (requer binários do PostgreSQL) |
 
 ## Configurando o Supabase
@@ -100,6 +101,24 @@ Segurança:
 - Ingestão de menções e classificações automáticas usam a service role (backend).
 - `credentials_secret_id` de conexões nunca é exposto ao cliente (tokens vão para o Supabase Vault).
 
+## Fase 2 — perfis, menções e sentimento
+
+- **Perfis monitorados** (`/painel/perfis`): cadastro com foto (bucket privado `profile-photos`), apelidos e quatro
+  grupos de termos — principais, relacionados, de contexto e exclusões. “Sugerir termos” propõe termos a partir do
+  cadastro e “Testar os termos” mostra se um texto seria atribuído ao perfil (`src/lib/terms.ts`). Pausar, editar e
+  excluir; o limite de perfis do plano é aplicado no banco.
+- **Central de menções** (`/painel/mencoes`): feed com busca, filtros (período, rede, sentimento, assunto, relevância,
+  tipo, status, salvas), ordenação e paginação no banco; salvar, mudar status (em análise, respondida, resolvida,
+  ignorada), corrigir o sentimento e abrir o original.
+- **Registro manual**: até os conectores da Fase 3, a equipe pode registrar publicações públicas encontradas
+  (`add_manual_mention`). Nada é coletado automaticamente nem simulado.
+- **Análise de sentimento** (`src/lib/sentiment/`): Claude classifica em lotes de 20 com saída estruturada (Zod):
+  sentimento (positiva, negativa, neutra, mista, indeterminada), assunto, emoção, crítica/elogio, ironia, sarcasmo,
+  contexto e confiança. O prompt pede para não confundir crítica com ataque, não julgar por partido, entender
+  linguagem regional e usar “indeterminada” na dúvida; confiança < 0,45 vira indeterminada. As **correções manuais**
+  ficam no histórico (`sentiment_analysis.is_manual`), prevalecem sobre a IA e entram como exemplos nas próximas
+  análises. Requer `ANTHROPIC_API_KEY` e `SUPABASE_SERVICE_ROLE_KEY`; sem elas, as menções ficam “não classificadas”.
+
 ## Pulso de Reputação
 
 Índice 0–100 (`src/lib/metrics/reputation.ts`, também explicado no app em “Metodologia”):
@@ -124,7 +143,7 @@ Tendência vs. período anterior de mesma duração: ±3 pontos → alta/queda; 
 | Fase | Entrega | Situação |
 |------|---------|----------|
 | 1 | Estrutura, identidade visual, autenticação, banco + RLS, dashboard e demonstração | ✅ |
-| 2 | Perfis monitorados e termos, central de menções, filtros, análise de sentimento | — |
+| 2 | Perfis monitorados e termos, central de menções, filtros, análise de sentimento | ✅ |
 | 3 | Conectores reais (APIs oficiais) e central de fontes | — |
 | 4 | Inteligência, assistente, recomendações e radar de crises | — |
 | 5 | Relatórios (PDF), notificações, convites e planos de assinatura | — |

@@ -133,4 +133,45 @@ do $$ begin
   raise notice 'ok 7: retenção';
 end $$;
 
+
+-- 8) Fase 2: perfis com termos (RPC), limite do plano, menção manual
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
+select public.save_monitored_profile(:'org_a', :'profile_a',
+  '{"full_name":"Alessandro Brazão","public_name":"Prefeito Alessandro","nicknames":["Brazão"],"office":"Prefeito","municipality":"Ferreira Gomes","state":"ap"}',
+  '[{"term":"Alessandro Brazão","kind":"primary"},{"term":"Ferreira Gomes","kind":"context"},{"term":"Alessandro Silva","kind":"exclude"}]');
+select public.add_manual_mention(:'profile_a', 'instagram', 'Comentário público sobre a prefeitura', 'https://instagram.com/p/x', 'Perfil público', now() - interval '1 hour', 'comment') as manual_id \gset
+\set ON_ERROR_STOP off
+-- plano Essencial permite 1 perfil: o segundo deve falhar
+select public.save_monitored_profile(:'org_a', null, '{"full_name":"Outro Nome","public_name":"Outro"}', '[]');
+-- link inválido
+select public.add_manual_mention(:'profile_a', 'instagram', 'Texto qualquer aqui', 'javascript:alert(1)', null, now(), 'post');
+\set ON_ERROR_STOP on
+reset role;
+do $$ begin
+  if (select count(*) from public.search_terms) <> 3 then raise exception 'FALHA: termos não salvos'; end if;
+  if (select state from public.monitored_profiles limit 1) <> 'AP' then raise exception 'FALHA: UF não normalizada'; end if;
+  if (select count(*) from public.monitored_profiles) <> 1 then raise exception 'FALHA: limite do plano não aplicado'; end if;
+  if (select count(*) from public.mentions where external_id like 'manual:%') <> 1 then raise exception 'FALHA: menção manual'; end if;
+  raise notice 'ok 8: perfil + termos atômicos, limite do plano, menção manual validada';
+end $$;
+
+-- 9) Bruno e Carla não usam as RPCs da Fase 2 na Org A
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+\set ON_ERROR_STOP off
+select public.save_monitored_profile(:'org_a', :'profile_a', '{"full_name":"Invadido","public_name":"Invadido"}', '[]');
+select public.add_manual_mention(:'profile_a', 'x', 'Menção injetada por outra org', null, null, now(), 'post');
+\set ON_ERROR_STOP on
+reset role;
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000c');
+\set ON_ERROR_STOP off
+select public.add_manual_mention(:'profile_a', 'x', 'Viewer tentando inserir', null, null, now(), 'post');
+\set ON_ERROR_STOP on
+reset role;
+do $$ begin
+  if exists (select 1 from public.monitored_profiles where public_name = 'Invadido') then raise exception 'FALHA: edição cruzada de perfil'; end if;
+  if (select count(*) from public.search_terms) <> 3 then raise exception 'FALHA: termos apagados por outra org'; end if;
+  if (select count(*) from public.mentions where external_id like 'manual:%') <> 1 then raise exception 'FALHA: menção manual indevida'; end if;
+  raise notice 'ok 9: RPCs da Fase 2 respeitam organização e papel';
+end $$;
+
 do $$ begin raise notice 'TODOS OS TESTES PASSARAM'; end $$;

@@ -14,4 +14,5 @@ desta pasta para arquitetura, banco e roadmap.
 - **Nunca** exibir números inventados fora de `/demo`; dados de demo nunca vão para o banco.
 - Toda tabela nova: `organization_id`, RLS habilitado, políticas por papel e teste em `supabase/tests/rls_test.sql`.
 - Service role só em `src/lib/supabase/admin.ts` (server-only).
-- Antes de concluir: `npm run build` e `npm run test:db` passando.
+- IA: `src/lib/sentiment/` (Claude, saída estruturada). Sem chave, nada é classificado — nunca simular.
+- Antes de concluir: `npm run build`, `npm test` e `npm run test:db` passando.

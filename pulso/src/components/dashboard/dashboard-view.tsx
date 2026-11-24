@@ -268,11 +268,16 @@ function NoMentions({ mode, connected, periodLabel }: { mode: "app" | "demo"; co
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           {mode === "app" && (
-            <Button asChild variant="outline">
-              <Link href="/demo">
-                Ver como fica com dados <ArrowRight />
-              </Link>
-            </Button>
+            <>
+              <Button asChild>
+                <Link href="/painel/mencoes">Registrar menção manualmente</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/demo">
+                  Ver como fica com dados <ArrowRight />
+                </Link>
+              </Button>
+            </>
           )}
         </div>
         <p className={cn("mt-4 text-xs text-muted-foreground/80", mode === "demo" && "hidden")}>Conectores de fontes reais chegam na Fase 3.</p>
