@@ -92,9 +92,9 @@ export function ProfilesList({
           </p>
         </div>
         {canEdit && (
-          <Button asChild={!atLimit} disabled={atLimit} title={atLimit ? "Limite do plano atingido." : undefined}>
+          <Button asChild={!atLimit} disabled={atLimit} title={atLimit ? "Limite do plano atingido." : undefined} className="w-full sm:w-auto">
             {atLimit ? (
-              <span>
+              <span className="inline-flex items-center gap-2">
                 <Plus /> Novo perfil
               </span>
             ) : (
@@ -126,19 +126,19 @@ export function ProfilesList({
           )}
         </Card>
       ) : (
-        <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2 xl:grid-cols-3">
           {profiles.map((p, i) => {
             const counts = { primary: 0, related: 0, context: 0, exclude: 0 };
             p.terms.forEach((t) => (counts[t.kind] += 1));
             return (
-              <li key={p.id} className="animate-in fade-in-0 slide-in-from-bottom-1 duration-300 fill-mode-both" style={{ animationDelay: `${i * 40}ms` }}>
-                <Card className={cn("flex h-full flex-col p-5 transition-colors hover:border-muted-foreground/30", p.status === "paused" && "opacity-75")}>
+              <li key={p.id} className="min-w-0 animate-in fade-in-0 slide-in-from-bottom-1 duration-300 fill-mode-both" style={{ animationDelay: `${i * 40}ms` }}>
+                <Card className={cn("flex h-full min-w-0 flex-col p-5 transition-colors hover:border-muted-foreground/30", p.status === "paused" && "opacity-75")}>
                   <div className="flex items-start gap-3">
                     <Avatar name={p.publicName} src={p.photoUrl} className="size-12 text-sm" />
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate font-semibold">{p.publicName}</p>
-                        <Badge variant={p.status === "active" ? "positive" : "muted"}>{p.status === "active" ? "Ativo" : "Pausado"}</Badge>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <p className="min-w-0 truncate font-semibold">{p.publicName}</p>
+                        <Badge className="shrink-0" variant={p.status === "active" ? "positive" : "muted"}>{p.status === "active" ? "Ativo" : "Pausado"}</Badge>
                       </div>
                       <p className="truncate text-xs text-muted-foreground">{p.fullName}</p>
                       <p className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground">
