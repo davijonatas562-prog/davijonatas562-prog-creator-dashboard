@@ -4,11 +4,11 @@
  */
 // Aceita o nome antigo (ANON_KEY) e o atual do Supabase (PUBLISHABLE_KEY); ignora "/" no fim da URL.
 export const SUPABASE_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim().replace(/\/+$/, "");
-export const SUPABASE_ANON_KEY = (
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  ""
-).trim();
+// Se a variável receber o trecho "NOME=valor" colado inteiro (ex.: do botão Connect), fica só o valor.
+const cleanKey = (v: string) => (v.includes("=") ? (v.split("=").pop() ?? "") : v).replace(/["'\s]/g, "");
+export const SUPABASE_ANON_KEY = cleanKey(
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "",
+);
 
 export function isSupabaseConfigured() {
   return SUPABASE_URL.startsWith("http") && SUPABASE_ANON_KEY.length > 30;
