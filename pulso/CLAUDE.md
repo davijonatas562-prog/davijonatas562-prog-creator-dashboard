@@ -16,3 +16,5 @@ desta pasta para arquitetura, banco e roadmap.
 - Service role só em `src/lib/supabase/admin.ts` (server-only).
 - IA: `src/lib/sentiment/` (Claude, saída estruturada). Sem chave, nada é classificado — nunca simular.
 - Antes de concluir: `npm run build`, `npm test` e `npm run test:db` passando.
+- Embeds do PostgREST: tabelas com FK composta `(x_id, organization_id)` têm DUAS relações com a tabela-pai.
+  Sempre indique a FK no select: `search_terms!search_terms_profile_id_fkey(...)`, senão o Supabase devolve PGRST201.
