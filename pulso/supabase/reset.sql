@@ -9,7 +9,7 @@ do $$ begin
 end $$;
 drop trigger if exists on_auth_user_created on auth.users;
 drop view if exists public.mentions_with_sentiment;
-drop table if exists public.audit_logs, public.notifications, public.ai_recommendations, public.reports,
+drop table if exists public.connection_secrets, public.sync_runs, public.audit_logs, public.notifications, public.ai_recommendations, public.reports,
   public.crisis_alerts, public.saved_mentions, public.sentiment_analysis, public.mentions, public.topics,
   public.social_connections, public.social_sources, public.search_terms, public.monitored_profiles,
   public.subscriptions, public.organization_members, public.organizations, public.users, public.plans cascade;

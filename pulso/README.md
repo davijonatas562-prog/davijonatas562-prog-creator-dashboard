@@ -3,7 +3,7 @@
 Plataforma SaaS para monitorar a reputação digital de pessoas públicas (prefeitos, deputados, vereadores,
 gestores) a partir de **conteúdo público**: menções, sentimento, tendências, crises e recomendações.
 
-> Status: **Fases 1 e 2 concluídas** — estrutura, autenticação, banco com RLS, dashboard, demonstração,
+> Status: **Fases 1, 2 e 3 concluídas** — estrutura, autenticação, banco com RLS, dashboard, demonstração,
 > perfis monitorados com termos, central de menções e análise de sentimento por IA. Veja o [roadmap](#roadmap).
 
 ## Rodando localmente
@@ -119,6 +119,27 @@ Segurança:
   ficam no histórico (`sentiment_analysis.is_manual`), prevalecem sobre a IA e entram como exemplos nas próximas
   análises. Requer `ANTHROPIC_API_KEY` e `SUPABASE_SERVICE_ROLE_KEY`; sem elas, as menções ficam “não classificadas”.
 
+## Fase 3 — fontes e coleta
+
+| Fonte | Como coleta | O que precisa |
+|---|---|---|
+| Sites de notícias / Blogs | Feeds RSS/Atom públicos cadastrados pela equipe; só entram itens que casam com os termos do perfil | Nada (feeds validados ao salvar; endereços internos bloqueados) |
+| Busca de notícias | API GNews (plano comercial) | `GNEWS_API_KEY` |
+| YouTube | YouTube Data API v3: vídeos que citam o perfil + comentários públicos | `YOUTUBE_API_KEY` |
+| Facebook | Graph API: comentários nos posts da Página do político | App da Meta (`META_APP_ID`, `META_APP_SECRET`) + login do dono |
+| Instagram | Graph API: comentários nos posts + publicações que marcaram o perfil | Conta profissional ligada à Página + mesmo app da Meta |
+| X, TikTok, Threads, Reddit | Indisponíveis: sem acesso comercial oficial no momento | — |
+
+- O **Google News RSS não é usado**: seus termos permitem apenas uso pessoal e não comercial.
+- A Meta **não permite** buscar por nome em todo o Instagram/Facebook nem ler comentários de perfis de terceiros.
+- Nomes de quem comenta **não são gravados** (foco no assunto, não em pessoas — LGPD).
+- Motor: `src/lib/connectors/sync.ts` grava com deduplicação (`profile_id, source_id, external_id`), atualiza status e
+  histórico (`sync_runs`) e manda as novas menções para a IA. Tokens OAuth ficam em `connection_secrets`, sem acesso pelo cliente.
+- Disparo: botão “Atualizar monitoramento”/“Coletar agora” e **Vercel Cron diário** (`vercel.json` → `/api/cron/sincronizar`,
+  protegido por `CRON_SECRET`). Coleta exige `SUPABASE_SERVICE_ROLE_KEY`.
+- Meta: crie o app em developers.facebook.com, adicione o redirect `https://SEU-DOMINIO/api/conectores/meta/retorno`.
+  Em modo de desenvolvimento funciona com as contas em que você tem papel no app; para clientes, é preciso a análise da Meta.
+
 ## Pulso de Reputação
 
 Índice 0–100 (`src/lib/metrics/reputation.ts`, também explicado no app em “Metodologia”):
@@ -144,7 +165,7 @@ Tendência vs. período anterior de mesma duração: ±3 pontos → alta/queda; 
 |------|---------|----------|
 | 1 | Estrutura, identidade visual, autenticação, banco + RLS, dashboard e demonstração | ✅ |
 | 2 | Perfis monitorados e termos, central de menções, filtros, análise de sentimento | ✅ |
-| 3 | Conectores reais (APIs oficiais) e central de fontes | — |
+| 3 | Conectores reais (APIs oficiais) e central de fontes | ✅ |
 | 4 | Inteligência, assistente, recomendações e radar de crises | — |
 | 5 | Relatórios (PDF), notificações, convites e planos de assinatura | — |
 | 6 | Testes de segurança, responsividade e ponta a ponta | — |

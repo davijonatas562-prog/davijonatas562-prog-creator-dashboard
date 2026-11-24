@@ -217,7 +217,7 @@ function SourcesMenu({ sources }: { sources: SourceStatus[] }) {
           })}
         </ul>
         <DropdownMenuSeparator className="m-0" />
-        <p className="px-3 py-2 text-[11px] text-muted-foreground">A configuração de conectores chega na Fase 3.</p>
+        <p className="px-3 py-2 text-[11px] text-muted-foreground">Configure as fontes em “Fontes de monitoramento”, no menu.</p>
       </DropdownMenuContent>
     </DropdownMenu>
   );
