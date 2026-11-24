@@ -9,6 +9,8 @@ import { requireOrg } from "@/lib/data/session";
 import { listMentionsForPeriod, listProfiles, listSourceStatuses } from "@/lib/data/dashboard";
 import { refreshMonitoring } from "./actions";
 
+export const maxDuration = 60;
+
 export default async function PainelPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams;
   const ctx = await requireOrg();

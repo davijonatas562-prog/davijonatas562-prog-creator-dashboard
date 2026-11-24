@@ -174,4 +174,39 @@ do $$ begin
   raise notice 'ok 9: RPCs da Fase 2 respeitam organização e papel';
 end $$;
 
+
+-- 10) Fase 3: segredos de conexão invisíveis ao cliente; histórico de coletas isolado
+set role service_role;
+insert into public.connection_secrets (connection_id, organization_id, secrets)
+select id, organization_id, '{"pages":{"1":"TOKEN"}}' from public.social_connections where organization_id = :'org_a' and source_id = 'facebook';
+insert into public.sync_runs (organization_id, source_id, found, inserted) values (:'org_a', 'news_sites', 3, 2);
+-- coleta duplicada não cria menção repetida (ON CONFLICT DO NOTHING)
+insert into public.mentions (organization_id, profile_id, source_id, external_id, content, published_at)
+values (:'org_a', :'profile_a', 'news_sites', 'abc', 'Notícia', now()), (:'org_a', :'profile_a', 'news_sites', 'abc', 'Notícia', now())
+on conflict (profile_id, source_id, external_id) do nothing;
+reset role;
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000a');
+\set ON_ERROR_STOP off
+select count(*) from public.connection_secrets;
+\set ON_ERROR_STOP on
+do $$ begin
+  if (select count(*) from public.sync_runs) <> 1 then raise exception 'FALHA: owner deveria ver o histórico de coletas'; end if;
+  raise notice 'ok 10a: histórico de coletas visível para a organização';
+end $$;
+reset role;
+select pg_temp.as_user('00000000-0000-0000-0000-00000000000b');
+do $$ begin
+  if (select count(*) from public.sync_runs) <> 0 then raise exception 'FALHA: histórico de coletas vazou'; end if;
+  begin
+    perform count(*) from public.connection_secrets;
+    raise exception 'FALHA: cliente leu connection_secrets';
+  exception when insufficient_privilege then null; end;
+  raise notice 'ok 10b: tokens inacessíveis ao cliente e histórico isolado';
+end $$;
+reset role;
+do $$ begin
+  if (select count(*) from public.mentions where external_id = 'abc') <> 1 then raise exception 'FALHA: deduplicação'; end if;
+  raise notice 'ok 10c: deduplicação de menções coletadas';
+end $$;
+
 do $$ begin raise notice 'TODOS OS TESTES PASSARAM'; end $$;

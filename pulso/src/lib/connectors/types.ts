@@ -1,34 +1,43 @@
-import type { SourceId } from "@/lib/types";
+import type { ContentType, SearchTerm, SourceId } from "@/lib/types";
 
 /**
- * Contrato de um conector (Fase 3). Cada fonte implementa esta interface num
- * módulo próprio e é registrada em um mapa SourceId → Connector. O job de
- * sincronização roda no servidor com a service role, grava em `mentions` e
- * atualiza `social_connections` (status, last_synced_at, mentions_found, last_error).
+ * Contrato dos conectores. Cada fonte implementa `collect`, que devolve menções
+ * normalizadas. A gravação, a deduplicação e o status ficam no motor (sync.ts).
+ * Conectores só acessam conteúdo público ou autorizado pelo dono da conta.
  */
 export interface RawMention {
   externalId: string;
   url: string | null;
   authorName: string | null;
-  authorHandle: string | null;
   content: string;
-  contentType: "post" | "comment" | "video" | "article" | "reply" | "other";
+  contentType: ContentType;
   publishedAt: Date;
   reach: number | null;
   engagement: number | null;
+  relevance: number; // 0–1
 }
 
-export interface SearchQuery {
-  include: string[]; // termos principais + relacionados
-  context: string[]; // termos de contexto para desambiguar homônimos
-  exclude: string[]; // nomes/termos que devem ser descartados
+export interface ProfileQuery {
+  id: string;
+  publicName: string;
+  terms: SearchTerm[];
+  nicknames: string[];
+}
+
+export interface ConnectorContext {
+  profile: ProfileQuery;
+  config: Record<string, unknown>;
+  secrets: Record<string, unknown> | null;
   since: Date;
 }
 
 export interface Connector {
   id: SourceId;
-  /** Verifica credenciais/config sem coletar nada. */
-  validate(config: Record<string, unknown>, credentials: Record<string, string> | null): Promise<{ ok: boolean; error?: string }>;
-  /** Coleta apenas conteúdo público, respeitando limites de taxa da plataforma. */
-  fetchMentions(query: SearchQuery, config: Record<string, unknown>, credentials: Record<string, string> | null): AsyncIterable<RawMention>;
+  /** O que falta no servidor para funcionar (ex.: chave de API). null = pronto. */
+  missingSetup(): string | null;
+  /** O que falta na configuração da organização (ex.: nenhum feed). null = pronto. */
+  missingConfig(config: Record<string, unknown>, hasSecrets: boolean): string | null;
+  collect(ctx: ConnectorContext): Promise<RawMention[]>;
 }
+
+export class ConnectorError extends Error {}

@@ -7,8 +7,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ORG_COOKIE, getSessionContext, requireOrg, canEdit } from "@/lib/data/session";
-import { listSourceStatuses } from "@/lib/data/dashboard";
-import { SOURCE_BY_ID } from "@/lib/connectors/catalog";
+import { syncNow } from "./fontes/actions";
 import { profileNameSchema, resetSchema } from "@/lib/validation/auth";
 import type { ActionResult } from "@/lib/action-result";
 
@@ -22,23 +21,9 @@ export async function switchOrganization(orgId: string): Promise<ActionResult> {
   return { ok: true };
 }
 
-/**
- * Atualizar monitoramento: dispara a sincronização das fontes conectadas.
- * Enquanto nenhum conector estiver implementado (Fase 3), informa isso com clareza
- * e apenas recarrega os dados já armazenados — nunca simula uma coleta.
- */
+/** Atualizar monitoramento: coleta agora em todas as fontes ativas. */
 export async function refreshMonitoring(): Promise<ActionResult> {
-  const ctx = await requireOrg();
-  const statuses = await listSourceStatuses(ctx.org.id);
-  const runnable = statuses.filter((s) => s.status === "connected" && SOURCE_BY_ID[s.sourceId]?.implemented);
-  revalidatePath("/painel");
-  if (runnable.length === 0) {
-    return {
-      ok: false,
-      error: "Nenhuma fonte conectada para sincronizar. Os dados exibidos foram recarregados do banco; os conectores chegam na Fase 3.",
-    };
-  }
-  return { ok: true, message: `Sincronização solicitada para ${runnable.length} fonte(s).` };
+  return syncNow();
 }
 
 export async function updateMyName(input: unknown): Promise<ActionResult> {

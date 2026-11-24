@@ -44,16 +44,14 @@ const SOURCE_MIX: [SourceId, number, number][] = [
   // fonte, peso, relevância
   ["instagram", 30, 0.75],
   ["facebook", 26, 0.7],
-  ["tiktok", 9, 0.6],
-  ["x", 7, 0.65],
   ["youtube", 4, 0.7],
   ["google_news", 9, 0.95],
   ["news_sites", 9, 0.9],
   ["blogs", 4, 0.6],
 ];
 
-// X parou de sincronizar há 2 dias (token expirado) — a demo mostra o erro e para de gerar menções do X
-const X_ERROR_HOURS_AGO = 50;
+// YouTube parou há 2 dias (cota da API esgotada) — a demo mostra o erro e para de gerar menções do YouTube
+const YT_ERROR_HOURS_AGO = 50;
 
 const TEXTS: Record<string, Partial<Record<Sentiment, string[]>>> = {
   Saúde: {
@@ -203,7 +201,7 @@ export function generateDemoMentions(now: Date): Mention[] {
       if (h < 96) topicDefs = topicDefs.map(([t, w]) => [t, t.name === "Infraestrutura" ? w * 2.6 : w]);
       const topic = pick(r, topicDefs);
       let mix = SOURCE_MIX;
-      if (h < X_ERROR_HOURS_AGO) mix = mix.filter(([s]) => s !== "x");
+      if (h < YT_ERROR_HOURS_AGO) mix = mix.filter(([s]) => s !== "youtube");
       const [sourceId, , relevance] = pick(r, mix.map((m) => [m, m[1]] as [typeof m, number]));
       const sentiment = sentimentFor(r, topic, h);
       const minute = Math.floor(r() * 60);
@@ -245,12 +243,12 @@ export function demoSourceStatuses(now: Date, mentions: Mention[]): SourceStatus
   return [
     status("instagram", "connected"),
     status("facebook", "connected"),
-    status("x", "error", {
-      lastSyncedAt: new Date(now.getTime() - X_ERROR_HOURS_AGO * MS.HOUR).toISOString(),
-      lastError: "Token de acesso expirado. Reconecte a conta para retomar a coleta.",
+    status("x", "not_connected"),
+    status("tiktok", "not_connected"),
+    status("youtube", "connected", {
+      lastSyncedAt: new Date(now.getTime() - YT_ERROR_HOURS_AGO * MS.HOUR).toISOString(),
+      lastError: "Cota diária da API do YouTube esgotada. A coleta volta automaticamente amanhã.",
     }),
-    status("tiktok", "connected"),
-    status("youtube", "connected"),
     status("threads", "not_connected"),
     status("google_news", "connected"),
     status("news_sites", "connected"),

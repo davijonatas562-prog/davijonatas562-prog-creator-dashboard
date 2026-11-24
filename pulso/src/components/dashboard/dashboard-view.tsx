@@ -9,7 +9,7 @@ import type { ActionResult } from "@/lib/action-result";
 import { sourceName } from "@/lib/connectors/catalog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { cn, formatCompact, formatInt } from "@/lib/utils";
+import { formatCompact, formatInt } from "@/lib/utils";
 import { DashboardHeader, useDashboardNavigation } from "./dashboard-header";
 import { KpiCard } from "./kpi-card";
 import { ReputationCard } from "./reputation-card";
@@ -263,13 +263,16 @@ function NoMentions({ mode, connected, periodLabel }: { mode: "app" | "demo"; co
         <h2 className="mt-4 text-lg font-semibold">Nenhuma menção em {periodLabel.toLowerCase()}</h2>
         <p className="mt-2 max-w-md text-sm text-muted-foreground">
           {connected === 0
-            ? "Ainda não há fontes conectadas, então nenhum dado foi coletado. O PULSO não exibe números estimados ou inventados: os indicadores aparecem assim que as primeiras menções reais chegarem."
+            ? "Ainda não há fontes ativas, então nenhum dado foi coletado. O PULSO não exibe números estimados ou inventados: ative as fontes em “Fontes de monitoramento” ou registre menções manualmente."
             : "As fontes conectadas não encontraram menções neste período. Tente um período maior ou revise os termos de monitoramento."}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           {mode === "app" && (
             <>
               <Button asChild>
+                <Link href="/painel/fontes">Configurar fontes</Link>
+              </Button>
+              <Button asChild variant="outline">
                 <Link href="/painel/mencoes">Registrar menção manualmente</Link>
               </Button>
               <Button asChild variant="outline">
@@ -280,7 +283,7 @@ function NoMentions({ mode, connected, periodLabel }: { mode: "app" | "demo"; co
             </>
           )}
         </div>
-        <p className={cn("mt-4 text-xs text-muted-foreground/80", mode === "demo" && "hidden")}>Conectores de fontes reais chegam na Fase 3.</p>
+
       </CardContent>
     </Card>
   );
