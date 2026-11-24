@@ -1,5 +1,8 @@
 # CLAUDE.md — Painel de Conteúdo @davisantsofc
 
+> A pasta `pulso/` contém outro app independente (PULSO, inteligência de reputação digital) com
+> `package.json`, `CLAUDE.md` e `README.md` próprios. Ela é excluída do `tsconfig`/ESLint da raiz.
+
 Painel interno do negócio de criador do **@davisantsofc**: hooks, métricas, concorrentes,
 agendamento, calendário editorial e notícias de IA num lugar só.
 
