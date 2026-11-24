@@ -29,7 +29,7 @@ login/cadastro mostram um aviso de configuração, com os formulários desabilit
 
 1. Crie um projeto em [supabase.com](https://supabase.com).
 2. Aplique as migrations de `supabase/migrations/` em ordem — pela CLI (`supabase link` + `supabase db push`)
-   ou colando cada arquivo no SQL Editor.
+   ou colando **`supabase/setup-completo.sql`** (todas juntas, na ordem) no SQL Editor e clicando em *Run*.
 3. Em **Settings → API**, copie `URL`, `anon key` e `service_role key` para o `.env.local`.
 4. Em **Authentication → URL Configuration**:
    - *Site URL*: a URL do app (ex.: `http://localhost:3000`)
