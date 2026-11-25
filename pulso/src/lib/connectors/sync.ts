@@ -1,5 +1,5 @@
 import "server-only";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, serviceKeyProblem } from "@/lib/supabase/admin";
 import type { SearchTermKind, SourceId } from "@/lib/types";
 import { CONNECTORS } from "./registry";
 import { ConnectorError, type ProfileQuery } from "./types";
@@ -35,7 +35,7 @@ type ProfileRow = { id: string; public_name: string; nicknames: string[]; status
  */
 export async function syncOrganization(orgId: string, trigger: "manual" | "cron", onlySource?: SourceId): Promise<SyncSummary> {
   const admin = createAdminClient();
-  if (!admin) throw new SyncSetupError("A coleta exige a chave SUPABASE_SERVICE_ROLE_KEY configurada no servidor.");
+  if (!admin) throw new SyncSetupError(serviceKeyProblem() ?? "A coleta exige a chave SUPABASE_SERVICE_ROLE_KEY configurada no servidor.");
 
   const [{ data: conns }, { data: profiles }, { data: secretRows }] = await Promise.all([
     admin.from("social_connections").select("id, source_id, status, config, last_synced_at, mentions_found").eq("organization_id", orgId),
