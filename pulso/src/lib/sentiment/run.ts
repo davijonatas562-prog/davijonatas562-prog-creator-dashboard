@@ -1,5 +1,5 @@
 import "server-only";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, serviceKeyProblem } from "@/lib/supabase/admin";
 import { classifyBatch, BATCH_SIZE, SENTIMENT_MODEL, SentimentError, isSentimentConfigured } from "./classify";
 
 export function slugify(s: string) {
@@ -13,7 +13,7 @@ export function slugify(s: string) {
 export async function classifyPendingMentions(opts: { orgId: string; profileId: string; mentionIds?: string[]; limit?: number }) {
   if (!isSentimentConfigured()) throw new SentimentError("A análise por IA não está configurada (ANTHROPIC_API_KEY).");
   const admin = createAdminClient();
-  if (!admin) throw new SentimentError("Gravar análises exige SUPABASE_SERVICE_ROLE_KEY no servidor.");
+  if (!admin) throw new SentimentError(serviceKeyProblem() ?? "Gravar análises exige SUPABASE_SERVICE_ROLE_KEY no servidor.");
 
   const { data: profile } = await admin
     .from("monitored_profiles")
